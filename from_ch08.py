@@ -663,15 +663,18 @@ class Pooling:
 
 def load():
     # load data
+    np.random.seed(71)
+
     array = np.load("generated_data.npy")
     array = array.astype("float32")*255
     data = []
     for out_id in range(16):
-        for image_id in range(len(array[out_id])):
+        np.random.shuffle(array[out_id])
+        n = int(len(array[out_id])*0.01)
+        for image_id in range(n):
             data.append(
                 (array[out_id, image_id].reshape((1, 65, 38)), out_id))
 
-    np.random.seed(71)
     np.random.shuffle(data)
     test_num = int(len(data)*0.2)
 
