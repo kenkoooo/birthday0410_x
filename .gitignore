@@ -1,0 +1,4 @@
+**/*.npy
+**/*.ipynb
+**/result/
+**/*.ipynb_checkpoints
