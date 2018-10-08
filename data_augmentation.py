@@ -24,7 +24,7 @@ filenames = [
 np.random.seed(71)
 
 num_files = len(filenames)
-num_image_per_image = 10000
+num_image_per_image = 1000
 
 array = np.zeros((num_files, num_image_per_image, 65 * 38))
 for file_index in trange(num_files):
