@@ -1,6 +1,7 @@
 
 import numpy as np
 from tqdm import trange
+import pickle
 
 
 class SGD:
