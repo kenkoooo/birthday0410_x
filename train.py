@@ -3,6 +3,7 @@ from answer import MultiLayerPerceptron
 import numpy as np
 import json
 import pickle
+from typing import Dict
 
 
 class Trainer:
@@ -12,9 +13,9 @@ class Trainer:
                  t_train,
                  x_test,
                  t_test,
+                 optimizer,
                  epochs=20,
-                 batch_size=100,
-                 learning_rate=0.001):
+                 batch_size=100):
         self.network = network
         self.x_train = x_train
         self.t_train = t_train
@@ -22,7 +23,7 @@ class Trainer:
         self.t_test = t_test
         self.epochs = epochs
         self.batch_size = batch_size
-        self.learning_rate = learning_rate
+        self.optimizer = optimizer
 
         self.train_size = x_train.shape[0]
 
@@ -36,12 +37,19 @@ class Trainer:
         t_batch = self.t_train[batch_mask]
 
         # 勾配
-        grad = self.network.gradient(x_batch, t_batch)
+        grad_list = self.network.gradient(x_batch, t_batch)
 
-        # 更新
-        for (i, dW, db) in grad:
-            self.network.layers[i].W -= self.learning_rate*dW
-            self.network.layers[i].b -= self.learning_rate*db
+        params = {}
+        grads = {}
+
+        # update
+        for (i, dW, db) in grad_list:
+            params["{}_W".format(i)] = self.network.layers[i].W
+            params["{}_b".format(i)] = self.network.layers[i].b
+            grads["{}_W".format(i)] = dW
+            grads["{}_b".format(i)] = db
+
+        self.optimizer.update(params, grads)
 
         loss = self.network.loss(x_batch, t_batch)
         self.train_loss_list.append(loss)
@@ -68,6 +76,36 @@ class Trainer:
                     train_acc=train_acc,
                     test_acc=test_acc,
                     average_loss=sum_loss/epoch_size)
+
+
+class Adam:
+
+    """Adam (http://arxiv.org/abs/1412.6980v8)"""
+
+    def __init__(self, lr=0.001, beta1=0.9, beta2=0.999):
+        self.lr = lr
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.iter = 0
+        self.m = None
+        self.v = None
+
+    def update(self, params: Dict[str, np.ndarray], grads: Dict[str, np.ndarray]):
+        if self.m is None:
+            self.m, self.v = {}, {}
+            for key, val in params.items():
+                self.m[key] = np.zeros_like(val)
+                self.v[key] = np.zeros_like(val)
+
+        self.iter += 1
+        lr_t = self.lr * np.sqrt(1.0 - self.beta2 **
+                                 self.iter) / (1.0 - self.beta1**self.iter)
+
+        for key in params.keys():
+            self.m[key] += (1 - self.beta1) * (grads[key] - self.m[key])
+            self.v[key] += (1 - self.beta2) * (grads[key]**2 - self.v[key])
+
+            params[key] -= lr_t * self.m[key] / (np.sqrt(self.v[key]) + 1e-7)
 
 
 def load_images(normalize=True, flatten=True, one_hot_label=False, test_ratio=0.8):
@@ -112,7 +150,8 @@ def main():
     n_out = t_train.shape[1]
     network = MultiLayerPerceptron(
         n_in=n_in, n_units=1000, n_out=n_out)
-    trainer = Trainer(network, x_train, t_train, x_test, t_test)
+    optimizer = Adam()
+    trainer = Trainer(network, x_train, t_train, x_test, t_test, optimizer)
     trainer.train()
 
     with open("train_acc.json", "w") as f:
