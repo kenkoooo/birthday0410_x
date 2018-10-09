@@ -14,12 +14,12 @@ FILENAMES = [
     "./courier_prime_png/Courier_Prime_7.png",
     "./courier_prime_png/Courier_Prime_8.png",
     "./courier_prime_png/Courier_Prime_9.png",
-    "./courier_prime_png/Courier_Prime_cpar.png",
-    "./courier_prime_png/Courier_Prime_div.png",
-    "./courier_prime_png/Courier_Prime_minus.png",
-    "./courier_prime_png/Courier_Prime_opar.png",
-    "./courier_prime_png/Courier_Prime_plus.png",
-    "./courier_prime_png/Courier_Prime_times.png",
+    "./courier_prime_png/Courier_Prime_cpar.png",  # 10
+    "./courier_prime_png/Courier_Prime_div.png",  # 11
+    "./courier_prime_png/Courier_Prime_minus.png",  # 12
+    "./courier_prime_png/Courier_Prime_opar.png",  # 13
+    "./courier_prime_png/Courier_Prime_plus.png",  # 14
+    "./courier_prime_png/Courier_Prime_times.png",  # 15
 ]
 
 np.random.seed(71)
@@ -44,10 +44,11 @@ def generate_image(label):
     cur_image = cur_image.rotate(r, fillcolor=255)
 
     new_image = Image.new('1', (38, 65), color=255)
+    vertical = np.random.randint(0, 20)
     for i in range(cur_image.width):
         for j in range(cur_image.height):
             x = int(i + sy * j)
-            y = int(sx * i + j)
+            y = int(sx * i + j) + vertical
             if x < 0 or x >= new_image.width or y < 0 or y >= new_image.height:
                 continue
             new_image.putpixel((x, y), cur_image.getpixel((i, j)))
