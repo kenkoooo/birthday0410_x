@@ -23,17 +23,16 @@ class MLP(chainer.Chain):
         return self.l3(h2)
 
 
-array = np.load("generated_data.npy")
-array = array.astype("float32")
+images = np.load("images.npy").astype("float32")
+labels = np.load("labels.npy")
 data = []
-for out_id in range(16):
-    for image_id in range(len(array[out_id])):
-        data.append((array[out_id, image_id], out_id))
+for image, label in zip(images, labels):
+    data.append((image, label))
 
 np.random.seed(71)
 np.random.shuffle(data)
 
-test_num = int(len(data)*0.2)
+test_num = int(len(data)*0.1)
 
 test, train = data[:test_num], data[test_num:]
 
